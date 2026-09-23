@@ -9,7 +9,8 @@
     "vscode": "^1.96.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Visualization"
   ],
   "main": "./extension.js",
   "activationEvents": [],
@@ -67,10 +68,24 @@
   "keywords": [
     "codex",
     "claude",
+    "claude code",
     "antigravity",
     "gemini",
     "usage",
     "tokens",
-    "rate limit"
+    "rate limit",
+    "quota",
+    "dashboard"
+  ],
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1c1e22",
+    "theme": "dark"
+  },
+  "qna": "marketplace",
+  "preview": true,
+  "homepage": "https://github.com/jiajilah/agent-usage-monitor#readme",
+  "extensionKind": [
+    "workspace"
   ]
 }

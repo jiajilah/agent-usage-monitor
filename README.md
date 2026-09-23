@@ -8,10 +8,17 @@ endpoints their own clients call, with the credentials they already stored. Ther
 no account, and no telemetry — nothing leaves your machine except the usage requests to each
 vendor.
 
+![Limits at a glance](docs/limits.png)
+
 ## What it shows
 
-**Limits at a glance** — for each tool, how much of the current window is left, the colour turning
-yellow past 40% used and red past 80%, with a bold countdown to the reset.
+### Limits at a glance
+
+One card per tool, showing how much of the current window is left and when it resets. The bar
+turns yellow past 40% used and red past 80%, and the countdown is the thing you actually read —
+"in 57m" matters more than the timestamp. Codex adds its credit balance and available full resets;
+Claude adds extra-usage spend for the month; Antigravity reports a rolling quota shared by all its
+Gemini models, and publishes no weekly figure.
 
 | Tool | Limits shown | Source |
 |---|---|---|
@@ -19,11 +26,33 @@ yellow past 40% used and red past 80%, with a bold countdown to the reset.
 | Claude Code | 5-hour + weekly, extra-usage spend, plan | `api.anthropic.com/api/oauth/usage` |
 | Antigravity | rolling quota per model pool (no weekly figure is published) | `cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels` |
 
-**Token usage** — fresh input, cache reads and writes, output and reasoning tokens, with request
-counts, over the last 24 hours / 7 days / 30 days, broken down by model and by project, plus a
-daily chart comparing the three tools and a data-table view of it.
+### Token usage
+
+Totals per tool for the last 24 hours, 7 days or 30 days, then a full breakdown: fresh input,
+cache reads and writes, output, and how much of that output was reasoning. Cache reads usually
+dwarf everything else, which is worth seeing.
+
+![Token usage](docs/tokens.png)
+
+### Daily chart and projects
+
+The three tools side by side per day, with a data-table view for exact numbers, and which of your
+projects the tokens went to.
+
+![Daily tokens and projects](docs/chart.png)
+
+### Models
+
+Which models did the work, per tool.
+
+![Models](docs/models.png)
 
 ## Install
+
+From the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=jiajilah.agent-usage-monitor),
+or search **Agent Usage Monitor** in the Extensions view.
+
+Or build it from source:
 
 ```bash
 git clone https://github.com/jiajilah/agent-usage-monitor.git

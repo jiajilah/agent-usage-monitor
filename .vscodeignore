@@ -1,0 +1,7 @@
+.git/**
+.gitignore
+docs/**
+build-vsix.py
+*.vsix
+__pycache__/**
+**/*.pyc
