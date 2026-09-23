@@ -49,7 +49,7 @@ Which models did the work, per tool.
 
 ## Install
 
-From the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=jiajilah-dev.agent-usage-monitor),
+From the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=jiajilah-vs.agent-usage-monitor),
 or search **Agent Usage Monitor** in the Extensions view.
 
 Or build it from source:
@@ -58,7 +58,7 @@ Or build it from source:
 git clone https://github.com/jiajilah/agent-usage-monitor.git
 cd agent-usage-monitor
 python3 build-vsix.py
-code --install-extension jiajilah-dev.agent-usage-monitor-0.1.1.vsix
+code --install-extension jiajilah-vs.agent-usage-monitor-0.1.1.vsix
 ```
 
 Reload the window, then run **Agent Usage: Open Usage Monitor** from the Command Palette
