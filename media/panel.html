@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;" />
+<title>Usage &amp; Billing</title>
+<style>
+  :root {
+    --series-codex: #2a78d6;
+    --series-claude: #eb6834;
+    --series-gemini: #1baf7a;
+    --surface: var(--vscode-editor-background);
+    --card: var(--vscode-editorWidget-background, rgba(127,127,127,0.08));
+    --border: var(--vscode-widget-border, rgba(127,127,127,0.35));
+    --ink: var(--vscode-foreground);
+    --ink-dim: var(--vscode-descriptionForeground);
+    --track: rgba(127,127,127,0.28);
+  }
+  body.vscode-dark, body.vscode-high-contrast {
+    --series-codex: #3987e5;
+    --series-claude: #d95926;
+    --series-gemini: #199e70;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    color: var(--ink);
+    background: var(--surface);
+    font-family: var(--vscode-font-family);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .layout { display: flex; align-items: flex-start; max-width: 1180px; margin: 0 auto; }
+  nav {
+    position: sticky; top: 0;
+    width: 190px; flex: none;
+    padding: 46px 8px 40px 16px;
+  }
+  nav a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 10px; margin-bottom: 2px;
+    border-radius: 5px;
+    color: var(--ink); text-decoration: none; opacity: .85;
+  }
+  nav a:hover { background: var(--vscode-list-hoverBackground); }
+  nav a.active { background: var(--vscode-list-activeSelectionBackground); color: var(--vscode-list-activeSelectionForeground); opacity: 1; }
+  nav .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  main { flex: 1; min-width: 0; padding: 40px 32px 80px; }
+  h1 { font-size: 26px; font-weight: 600; margin: 0 0 6px; }
+  h2 { font-size: 17px; font-weight: 600; margin: 34px 0 12px; }
+  h3 { font-size: 13px; font-weight: 600; margin: 0 0 10px; }
+  .sub { color: var(--ink-dim); margin: 0 0 18px; max-width: 620px; }
+  .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  button {
+    font-family: inherit; font-size: 12px;
+    color: var(--vscode-button-secondaryForeground, var(--ink));
+    background: var(--vscode-button-secondaryBackground, transparent);
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 4px 12px; cursor: pointer;
+  }
+  button:hover { background: var(--vscode-button-secondaryHoverBackground, var(--vscode-list-hoverBackground)); }
+  button.primary { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border-color: transparent; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px 18px; margin-bottom: 12px;
+  }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .muted { color: var(--ink-dim); }
+  .big { font-size: 22px; font-weight: 600; }
+  .meter { height: 8px; border-radius: 999px; background: var(--track); overflow: hidden; margin: 10px 0 6px; }
+  .meter > span { display: block; height: 100%; border-radius: 999px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .tile { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .tile .label { color: var(--ink-dim); font-size: 12px; display: flex; align-items: center; gap: 7px; }
+  .tile .value { font-size: 24px; font-weight: 600; margin-top: 4px; }
+  .tile .foot { color: var(--ink-dim); font-size: 12px; }
+  .filters { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+  .seg button { border: none; border-radius: 0; background: transparent; padding: 4px 12px; }
+  .seg button + button { border-left: 1px solid var(--border); }
+  .seg button[aria-pressed="true"] { background: var(--vscode-list-activeSelectionBackground); color: var(--vscode-list-activeSelectionForeground); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; width: 40%; white-space: normal; }
+  th { color: var(--ink-dim); font-weight: 500; }
+  tbody tr:last-child td { border-bottom: none; }
+  .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 7px; }
+  .legend { display: flex; gap: 16px; align-items: center; font-size: 12px; color: var(--ink-dim); }
+  .chart-wrap { overflow-x: auto; }
+  svg { display: block; }
+  .tip {
+    position: fixed; pointer-events: none; z-index: 20; opacity: 0;
+    background: var(--vscode-editorHoverWidget-background, var(--card));
+    border: 1px solid var(--vscode-editorHoverWidget-border, var(--border));
+    color: var(--vscode-editorHoverWidget-foreground, var(--ink));
+    border-radius: 5px; padding: 7px 10px; font-size: 12px; box-shadow: 0 3px 10px rgba(0,0,0,.35);
+  }
+  .note { border-left: 2px solid var(--series-claude); padding: 2px 0 2px 12px; color: var(--ink-dim); margin: 10px 0 0; }
+  .empty { color: var(--ink-dim); padding: 22px 0; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 820px) { .split { grid-template-columns: 1fr; } nav { display: none; } main { padding: 28px 18px 60px; } }
+  .glance { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 12px; margin-bottom: 8px; }
+  .glance .card { margin: 0; border-top: 3px solid var(--accent); }
+  .glance .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .glance .name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .glance .pill { font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--ink-dim); }
+  .limit { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .limit:last-of-type { border-bottom: none; }
+  .limit .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .limit .pct { font-size: 20px; font-weight: 600; }
+  .limit .meter { margin: 6px 0 4px; }
+  .foot-line { display: flex; justify-content: space-between; color: var(--ink-dim); font-size: 12px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .countdown { font-weight: 700; font-size: 15px; color: var(--ink); }
+  .warn { color: var(--vscode-errorForeground); font-size: 12px; }
+  .agents h3 { margin-bottom: 4px; }
+  .agents .agent-row { display: grid; grid-template-columns: 14px 64px 1fr auto; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--border); }
+  .agents .agent-row .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .agents .pill { font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--ink-dim); }
+  .agents .mono { font-family: var(--vscode-editor-font-family, monospace); }
+  .agents .status { padding-top: 8px; border-top: 1px solid var(--border); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav id="nav">
+    <a href="#overview" class="active">Overview</a>
+    <a href="#codex"><span class="dot" style="background:var(--series-codex)"></span>Codex</a>
+    <a href="#claude"><span class="dot" style="background:var(--series-claude)"></span>Claude Code</a>
+    <a href="#antigravity"><span class="dot" style="background:var(--series-gemini)"></span>Antigravity</a>
+    <a href="#activity">Activity</a>
+    <a href="#projects">Projects</a>
+    <a href="#" id="settingsLink">Settings</a>
+  </nav>
+  <main>
+    <div class="topbar">
+      <div>
+        <h1>Usage &amp; billing</h1>
+        <p class="sub" id="subtitle">Reading local Codex and Claude Code session logs…</p>
+      </div>
+      <button class="primary" id="refresh">Refresh</button>
+    </div>
+
+    <div id="status" class="empty">Loading usage…</div>
+
+    <div id="content" hidden>
+      <div class="glance" id="glance"></div>
+
+      <h2 id="overview">Overview</h2>
+      <div class="filters">
+        <span class="muted">Time range</span>
+        <span class="seg" id="range">
+          <button data-window="day" aria-pressed="false">24 hours</button>
+          <button data-window="week" aria-pressed="true">7 days</button>
+          <button data-window="month" aria-pressed="false">30 days</button>
+        </span>
+      </div>
+      <div class="grid" id="tiles"></div>
+
+      <h2 id="codex">Codex</h2>
+      <div id="codexLimits"></div>
+      <div class="card">
+        <h3>Token usage <span class="muted" id="codexRangeLabel"></span></h3>
+        <table id="codexTokens"></table>
+      </div>
+
+      <h2 id="claude">Claude Code</h2>
+      <div class="card">
+        <h3>Token usage <span class="muted" id="claudeRangeLabel"></span></h3>
+        <table id="claudeTokens"></table>
+        <p class="note">5-hour and weekly limits for Claude are at the top of this page, fetched live
+        from your Claude login. The tokens above are counted from your own transcripts.</p>
+      </div>
+
+      <h2 id="antigravity">Antigravity (Gemini)</h2>
+      <div class="card">
+        <h3>Token usage <span class="muted" id="gemRangeLabel"></span></h3>
+        <table id="gemTokens"></table>
+        <p class="note" id="gemNote"></p>
+      </div>
+
+      <h2 id="activity">Daily tokens</h2>
+      <div class="card">
+        <div class="row" style="margin-bottom:10px">
+          <div class="legend">
+            <span><span class="swatch" style="background:var(--series-codex)"></span>Codex</span>
+            <span><span class="swatch" style="background:var(--series-claude)"></span>Claude Code</span>
+            <span><span class="swatch" style="background:var(--series-gemini)"></span>Antigravity</span>
+          </div>
+          <button id="toggleTable">Show data table</button>
+        </div>
+        <div class="chart-wrap"><svg id="chart" role="img" aria-label="Daily token usage by tool"></svg></div>
+        <table id="chartTable" hidden></table>
+      </div>
+
+      <h2 id="projects">Projects</h2>
+      <div class="split">
+        <div class="card">
+          <h3><span class="swatch" style="background:var(--series-codex)"></span>Codex by project</h3>
+          <table id="codexProjects"></table>
+        </div>
+        <div class="card">
+          <h3><span class="swatch" style="background:var(--series-claude)"></span>Claude by project</h3>
+          <table id="claudeProjects"></table>
+        </div>
+        <div class="card">
+          <h3><span class="swatch" style="background:var(--series-gemini)"></span>Antigravity by project</h3>
+          <table id="gemProjects"></table>
+        </div>
+      </div>
+
+      <h2>Models</h2>
+      <div class="split">
+        <div class="card">
+          <h3><span class="swatch" style="background:var(--series-codex)"></span>Codex models</h3>
+          <table id="codexModels"></table>
+        </div>
+        <div class="card">
+          <h3><span class="swatch" style="background:var(--series-claude)"></span>Claude models</h3>
+          <table id="claudeModels"></table>
+        </div>
+        <div class="card">
+          <h3><span class="swatch" style="background:var(--series-gemini)"></span>Antigravity models</h3>
+          <table id="gemModels"></table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+(function () {
+  const vscode = acquireVsCodeApi();
+  const $ = (id) => document.getElementById(id);
+  let data = null;
+  let activeWindow = 'week';
+  const WINDOW_LABEL = { day: 'last 24 hours', week: 'last 7 days', month: 'last 30 days' };
+
+  const fmt = (n) => {
+    if (!n) return '0';
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return String(n);
+  };
+  const exact = (n) => (n || 0).toLocaleString();
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  function timeUntil(ms) {
+    const diff = ms - Date.now();
+    if (diff <= 0) return 'now';
+    const h = Math.floor(diff / 3600000);
+    const m = Math.round((diff % 3600000) / 60000);
+    if (h >= 24) return Math.floor(h / 24) + 'd ' + (h % 24) + 'h';
+    return h ? h + 'h ' + m + 'm' : m + 'm';
+  }
+
+  function meterCard(title, usedPercent, resetsAtMs, windowMinutes) {
+    const left = Math.max(0, 100 - usedPercent);
+    const hue = usageColor(usedPercent);
+    const reset = resetsAtMs
+      ? 'Resets ' + new Date(resetsAtMs).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' · in ' + timeUntil(resetsAtMs)
+      : '';
+    const windowText = windowMinutes >= 1440 ? Math.round(windowMinutes / 1440) + '-day window' : Math.round(windowMinutes / 60) + '-hour window';
+    return '<div class="card">'
+      + '<div class="row"><div><strong>' + esc(title) + '</strong><div class="muted">' + windowText + '</div></div>'
+      + '<div style="text-align:right"><div class="big">' + left.toFixed(0) + '% left</div>'
+      + '<div class="muted">' + usedPercent.toFixed(0) + '% used</div></div></div>'
+      + '<div class="meter"><span style="width:' + Math.min(100, usedPercent).toFixed(1) + '%;background:' + hue + '"></span></div>'
+      + '<div class="muted">' + esc(reset) + '</div></div>';
+  }
+
+  function tokenTable(summary) {
+    const t = summary.totals;
+    const rows = [
+      ['Fresh input', t.input],
+      ['Cache reads', t.cacheRead],
+      ['Cache writes', t.cacheWrite],
+      ['Output', t.output],
+      ['&nbsp;&nbsp;of which reasoning', t.reasoning]
+    ];
+    const body = rows.map(([label, value]) =>
+      '<tr><td>' + label + '</td><td>' + exact(value) + '</td></tr>').join('');
+    return '<thead><tr><th>Tokens</th><th>Count</th></tr></thead><tbody>' + body
+      + '<tr><td><strong>Total</strong></td><td><strong>' + exact(t.total) + '</strong></td></tr>'
+      + '<tr><td>Requests</td><td>' + exact(t.requests) + '</td></tr></tbody>';
+  }
+
+  function rankTable(rows, colorVar) {
+    if (!rows.length) return '<tbody><tr><td class="muted">No activity in this range.</td></tr></tbody>';
+    const max = rows[0].total || 1;
+    return '<thead><tr><th>Name</th><th>Tokens</th><th>Share</th></tr></thead><tbody>'
+      + rows.slice(0, 8).map((r) =>
+          '<tr><td>' + esc(r.name) + '</td><td>' + fmt(r.total) + '</td>'
+          + '<td><span style="display:inline-block;vertical-align:middle;width:56px;height:6px;border-radius:999px;background:var(--track)">'
+          + '<span style="display:block;height:100%;border-radius:999px;width:' + ((r.total / max) * 100).toFixed(1) + '%;background:' + colorVar + '"></span></span></td></tr>'
+        ).join('')
+      + '</tbody>';
+  }
+
+  const tip = $('tip');
+  function showTip(event, html) {
+    tip.innerHTML = html;
+    tip.style.opacity = '1';
+    const box = tip.getBoundingClientRect();
+    let x = event.clientX + 14;
+    if (x + box.width > window.innerWidth - 8) x = event.clientX - box.width - 14;
+    tip.style.left = x + 'px';
+    tip.style.top = Math.max(8, event.clientY - box.height - 10) + 'px';
+  }
+  function hideTip() { tip.style.opacity = '0'; }
+
+  function drawChart(days) {
+    const svg = $('chart');
+    svg.innerHTML = '';
+    const keys = Array.from(new Set([
+      ...days.codex.map((d) => d.day),
+      ...days.claude.map((d) => d.day),
+      ...days.gemini.map((d) => d.day)
+    ])).sort();
+    if (!keys.length) {
+      svg.setAttribute('height', '0');
+      $('chartTable').innerHTML = '<tbody><tr><td class="muted">No activity in this range.</td></tr></tbody>';
+      return;
+    }
+    const codex = new Map(days.codex.map((d) => [d.day, d.total]));
+    const claude = new Map(days.claude.map((d) => [d.day, d.total]));
+    const gemini = new Map(days.gemini.map((d) => [d.day, d.total]));
+    const max = Math.max(1, ...keys.map((k) =>
+      Math.max(codex.get(k) || 0, claude.get(k) || 0, gemini.get(k) || 0)));
+
+    const padL = 56, padR = 12, padT = 12, padB = 30;
+    const groupW = Math.max(30, Math.min(66, 800 / keys.length));
+    const width = padL + padR + keys.length * groupW;
+    const height = 220;
+    const plotH = height - padT - padB;
+    svg.setAttribute('width', width);
+    svg.setAttribute('height', height);
+    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+
+    const ns = 'http://www.w3.org/2000/svg';
+    const add = (name, attrs, parent) => {
+      const el = document.createElementNS(ns, name);
+      for (const k in attrs) el.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(el);
+      return el;
+    };
+
+    // Recessive gridlines with axis labels, three steps.
+    for (let i = 0; i <= 3; i++) {
+      const value = (max / 3) * i;
+      const y = padT + plotH - (plotH * i) / 3;
+      add('line', { x1: padL, x2: width - padR, y1: y, y2: y, stroke: 'var(--border)', 'stroke-width': 1, opacity: i ? 0.5 : 1 });
+      const label = add('text', { x: padL - 8, y: y + 4, 'text-anchor': 'end', fill: 'var(--ink-dim)', 'font-size': 10 });
+      label.textContent = fmt(Math.round(value));
+    }
+
+    const barW = Math.max(4, (groupW - 8) / 3 - 2);
+    keys.forEach((key, i) => {
+      const x0 = padL + i * groupW + 4;
+      [['codex', codex.get(key) || 0, 'var(--series-codex)', 'Codex'],
+       ['claude', claude.get(key) || 0, 'var(--series-claude)', 'Claude Code'],
+       ['gemini', gemini.get(key) || 0, 'var(--series-gemini)', 'Antigravity']
+      ].forEach(([, value, color, name], s) => {
+        if (!value) return;
+        const h = Math.max(2, (value / max) * plotH);
+        // 2px surface gap between adjacent bars; rounded data-end anchored to the baseline.
+        const rect = add('rect', {
+          x: x0 + s * (barW + 2), y: padT + plotH - h, width: barW, height: h,
+          rx: Math.min(4, barW / 2), fill: color
+        });
+        rect.addEventListener('mousemove', (e) =>
+          showTip(e, '<strong>' + esc(key) + '</strong><br>' + name + ': ' + exact(value) + ' tokens'));
+        rect.addEventListener('mouseleave', hideTip);
+      });
+      if (keys.length <= 16 || i % 2 === 0) {
+        const label = add('text', {
+          x: x0 + groupW / 2 - 4, y: height - 10, 'text-anchor': 'middle',
+          fill: 'var(--ink-dim)', 'font-size': 10
+        });
+        label.textContent = key.slice(5);
+      }
+    });
+
+    $('chartTable').innerHTML = '<thead><tr><th>Day</th><th>Codex</th><th>Claude Code</th><th>Antigravity</th></tr></thead><tbody>'
+      + keys.map((k) => '<tr><td>' + esc(k) + '</td><td>' + exact(codex.get(k) || 0)
+        + '</td><td>' + exact(claude.get(k) || 0) + '</td><td>' + exact(gemini.get(k) || 0) + '</td></tr>').join('')
+      + '</tbody>';
+  }
+
+
+  function usageColor(usedPercent) {
+    if (usedPercent > 80) return 'var(--vscode-charts-red, #e34948)';
+    if (usedPercent >= 40) return 'var(--vscode-charts-yellow, #eda100)';
+    return 'var(--vscode-charts-green, #1baf7a)';
+  }
+
+  function limitRow(label, w) {
+    if (!w) return '<div class="limit"><div class="top"><span>' + label + '</span><span class="muted">not reported</span></div></div>';
+    const left = Math.max(0, 100 - w.usedPercent);
+    const color = usageColor(w.usedPercent);
+    const reset = w.resetsAt
+      ? esc('Resets ' + new Date(w.resetsAt).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' · ')
+        + '<span class="countdown">in ' + esc(timeUntil(w.resetsAt)) + '</span>'
+      : 'Reset time not reported';
+    return '<div class="limit"><div class="top"><span>' + label + '</span><span class="pct">' + left.toFixed(0) + '% left</span></div>'
+      + '<div class="meter"><span style="width:' + Math.min(100, w.usedPercent).toFixed(1) + '%;background:' + color + '"></span></div>'
+      + '<div class="top muted" style="font-size:12px;align-items:center"><span>' + reset + '</span><span>' + w.usedPercent.toFixed(0) + '% used</span></div></div>';
+  }
+
+  function glanceCard(name, accentVar, live, fallback, footer) {
+    const value = live && live.ok ? live.value : fallback;
+    const plan = value && value.plan ? value.plan.charAt(0).toUpperCase() + value.plan.slice(1) : '';
+    let status = '';
+    if (live && live.ok) status = 'Live · ' + new Date(live.at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    else if (fallback) status = 'From last session log';
+    const warn = live && !live.ok ? '<div class="warn">Live check failed: ' + esc(live.error) + (fallback ? ' — showing last logged values.' : '') + '</div>' : '';
+    let body = '<div class="empty">No limit data available.</div>';
+    if (value && value.pools) {
+      body = value.pools.length
+        ? value.pools.map((pool) => limitRow(
+            pool.label.charAt(0).toUpperCase() + pool.label.slice(1) + (pool.modelCount ? ' (' + pool.modelCount + ')' : ''), pool)).join('')
+        : '<div class="empty">No quota reported for any model.</div>';
+    } else if (value) {
+      body = limitRow('5-hour limit', value.fiveHour) + limitRow('Weekly limit', value.weekly);
+    }
+    return '<div class="card" style="--accent:' + accentVar + '">'
+      + '<div class="head"><span class="name"><span class="dot" style="width:10px;height:10px;border-radius:50%;background:' + accentVar + '"></span>' + name
+      + (plan ? ' <span class="pill">' + esc(plan) + '</span>' : '') + '</span><span class="muted" style="font-size:12px">' + esc(status) + '</span></div>'
+      + warn + body + (value && footer ? '<div class="foot-line">' + footer(value) + '</div>' : '') + '</div>';
+  }
+
+  function renderGlance() {
+    const live = data.live || {};
+    // If the live Codex call fails, fall back to the rate limits recorded in the newest rollout.
+    const logged = data.codex.rateLimits;
+    const codexFallback = logged ? {
+      plan: data.codex.plan,
+      fiveHour: logged.primary ? { usedPercent: logged.primary.used_percent, resetsAt: logged.primary.resets_at * 1000, windowMinutes: logged.primary.window_minutes } : null,
+      weekly: logged.secondary ? { usedPercent: logged.secondary.used_percent, resetsAt: logged.secondary.resets_at * 1000, windowMinutes: logged.secondary.window_minutes } : null,
+      credits: logged.credits ? { balance: Number(logged.credits.balance || 0), unlimited: !!logged.credits.unlimited } : null,
+      resetCredits: null
+    } : null;
+
+    $('glance').innerHTML =
+      glanceCard('Codex', 'var(--series-codex)', live.codex, codexFallback, (v) => {
+        const credits = v.credits ? (v.credits.unlimited ? 'Unlimited' : v.credits.balance.toFixed(2)) : '—';
+        const resets = v.resetCredits != null ? v.resetCredits + ' full reset' + (v.resetCredits === 1 ? '' : 's') + ' available' : '';
+        return '<span>Credits balance: <strong>' + esc(credits) + '</strong></span><span>' + esc(resets) + '</span>';
+      })
+      + glanceCard('Claude Code', 'var(--series-claude)', live.claude, null, (v) =>
+        v.extra
+          ? '<span>Extra usage: <strong>' + v.extra.used.toFixed(2) + ' / ' + v.extra.limit.toFixed(2) + ' ' + esc(v.extra.currency) + '</strong> this month</span>'
+          : '<span>Extra usage off</span>')
+      + glanceCard('Antigravity', 'var(--series-gemini)', live.antigravity, null, (v) =>
+        '<span>Rolling quota · no weekly limit published</span>');
+  }
+
+  function render() {
+    if (!data) return;
+    renderGlance();
+    const codex = data.codex.windows[activeWindow];
+    const claude = data.claude.windows[activeWindow];
+    const gemini = data.antigravity.windows[activeWindow];
+    const label = '(' + WINDOW_LABEL[activeWindow] + ')';
+    $('codexRangeLabel').textContent = label;
+    $('claudeRangeLabel').textContent = label;
+    $('gemRangeLabel').textContent = label;
+
+    let limits = data.codex.rateLimits;
+    const plan = data.codex.plan ? data.codex.plan.charAt(0).toUpperCase() + data.codex.plan.slice(1) : 'Unknown';
+    const credits = limits && limits.credits;
+    const creditText = credits
+      ? (credits.unlimited ? 'Unlimited' : (credits.has_credits ? Number(credits.balance).toFixed(2) : '0.00'))
+      : 'Not reported';
+
+    $('tiles').innerHTML = [
+      ['<span class="swatch" style="background:var(--series-codex)"></span>Codex tokens', fmt(codex.totals.total), exact(codex.totals.requests) + ' requests'],
+      ['<span class="swatch" style="background:var(--series-claude)"></span>Claude tokens', fmt(claude.totals.total), exact(claude.totals.requests) + ' requests'],
+      ['<span class="swatch" style="background:var(--series-gemini)"></span>Antigravity tokens', fmt(gemini.totals.total), exact(gemini.totals.requests) + ' requests'],
+      ['Codex plan', plan, 'Credits: ' + creditText]
+    ].map(([l, v, f]) => '<div class="tile"><div class="label">' + l + '</div><div class="value">' + esc(v) + '</div><div class="foot">' + esc(f) + '</div></div>').join('');
+
+    let limitHtml = '';
+    if (data.live && data.live.codex && data.live.codex.ok) limits = null;
+    if (limits && limits.primary) {
+      limitHtml += meterCard('Primary limit', limits.primary.used_percent, limits.primary.resets_at * 1000, limits.primary.window_minutes);
+    }
+    if (limits && limits.secondary) {
+      limitHtml += meterCard('Secondary limit', limits.secondary.used_percent, limits.secondary.resets_at * 1000, limits.secondary.window_minutes);
+    }
+    if (limits) {
+      limitHtml += '<div class="card"><div class="row"><div><strong>Credits balance</strong>'
+        + '<div class="muted">As reported at ' + new Date(data.codex.rateLimitsTs).toLocaleString() + '</div></div>'
+        + '<div class="big">' + esc(creditText) + '</div></div></div>';
+    } else if (!(data.live && data.live.codex && data.live.codex.ok)) {
+      limitHtml = '<div class="card muted">No Codex rate-limit record found in the scanned logs. Start a Codex turn and refresh.</div>';
+    }
+    $('codexLimits').innerHTML = limitHtml;
+
+    $('codexTokens').innerHTML = tokenTable(codex);
+    $('claudeTokens').innerHTML = tokenTable(claude);
+    $('gemTokens').innerHTML = tokenTable(gemini);
+    $('gemProjects').innerHTML = rankTable(gemini.byProject, 'var(--series-gemini)');
+    $('gemModels').innerHTML = rankTable(gemini.byModel, 'var(--series-gemini)');
+    $('gemNote').innerHTML = data.antigravity.available
+      ? 'Read from Antigravity\'s per-conversation databases in ' + esc(data.antigravity.home)
+        + '. Its quota meters at the top come live from the same endpoint the Antigravity client calls; '
+        + 'it reports a rolling window per model pool and no weekly limit. '
+        + 'Conversations from before it started writing these databases are encrypted and cannot be counted.'
+      : 'No Antigravity usage could be read' + (data.antigravity.reason ? ' (' + esc(data.antigravity.reason) + ')' : '') + '.';
+    $('codexProjects').innerHTML = rankTable(codex.byProject, 'var(--series-codex)');
+    $('claudeProjects').innerHTML = rankTable(claude.byProject, 'var(--series-claude)');
+    $('codexModels').innerHTML = rankTable(codex.byModel, 'var(--series-codex)');
+    $('claudeModels').innerHTML = rankTable(claude.byModel, 'var(--series-claude)');
+
+    drawChart({
+      codex: data.codex.windows.month.byDay,
+      claude: data.claude.windows.month.byDay,
+      gemini: data.antigravity.windows.month.byDay
+    });
+
+    $('subtitle').textContent = 'Counted from local session logs in ' + data.codexHome + ' and ' + data.claudeHome
+      + ' and ' + data.antigravity.home + ' · last ' + data.lookbackDays + ' days · updated ' + new Date(data.generatedAt).toLocaleTimeString();
+    $('status').hidden = true;
+    $('content').hidden = false;
+  }
+
+  $('refresh').addEventListener('click', () => vscode.postMessage({ type: 'refresh' }));
+  $('settingsLink').addEventListener('click', (e) => { e.preventDefault(); vscode.postMessage({ type: 'openSettings' }); });
+  $('toggleTable').addEventListener('click', () => {
+    const table = $('chartTable');
+    table.hidden = !table.hidden;
+    $('toggleTable').textContent = table.hidden ? 'Show data table' : 'Hide data table';
+  });
+  $('range').addEventListener('click', (e) => {
+    const button = e.target.closest('button');
+    if (!button) return;
+    activeWindow = button.dataset.window;
+    Array.from($('range').children).forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+    render();
+  });
+  document.getElementById('nav').addEventListener('click', (e) => {
+    const link = e.target.closest('a');
+    if (!link || link.id === 'settingsLink') return;
+    Array.from(document.querySelectorAll('nav a')).forEach((a) => a.classList.toggle('active', a === link));
+  });
+
+  window.addEventListener('message', (event) => {
+    const message = event.data;
+    if (message.type === 'loading') {
+      $('status').hidden = false;
+      $('status').textContent = 'Scanning session logs…';
+      if (data) $('status').hidden = true;
+    } else if (message.type === 'data') {
+      data = message.data;
+      render();
+    } else if (message.type === 'error') {
+      $('status').hidden = false;
+      $('status').textContent = 'Failed to read usage: ' + message.message;
+    }
+  });
+
+  vscode.postMessage({ type: 'ready' });
+})();
+</script>
+</body>
+</html>

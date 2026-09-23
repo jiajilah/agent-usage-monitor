@@ -1,0 +1,76 @@
+{
+  "name": "agent-usage-monitor",
+  "displayName": "Agent Usage Monitor",
+  "description": "Codex, Claude Code and Antigravity usage limits and token counts in one editor tab.",
+  "version": "0.1.0",
+  "publisher": "jiajilah",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "agentUsage.open",
+        "title": "Open Usage Monitor",
+        "category": "Agent Usage"
+      },
+      {
+        "command": "agentUsage.refresh",
+        "title": "Refresh Usage Monitor",
+        "category": "Agent Usage"
+      }
+    ],
+    "configuration": {
+      "title": "Agent Usage Monitor",
+      "properties": {
+        "agentUsage.lookbackDays": {
+          "type": "number",
+          "default": 90,
+          "description": "How many days of session logs to scan. Older log files are ignored."
+        },
+        "agentUsage.codexHome": {
+          "type": "string",
+          "default": "",
+          "description": "Override the Codex home directory (default: ~/.codex)."
+        },
+        "agentUsage.claudeHome": {
+          "type": "string",
+          "default": "",
+          "description": "Override the Claude Code home directory (default: ~/.claude)."
+        },
+        "agentUsage.geminiHome": {
+          "type": "string",
+          "default": "",
+          "description": "Override the Antigravity data directory (default: ~/.gemini/antigravity)."
+        },
+        "agentUsage.antigravityModel": {
+          "type": "string",
+          "default": "gemini",
+          "description": "Model-name prefix whose Antigravity quota the top card shows. All gemini-* models share one allowance, so the default covers every Gemini version."
+        }
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jiajilah/agent-usage-monitor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jiajilah/agent-usage-monitor/issues"
+  },
+  "keywords": [
+    "codex",
+    "claude",
+    "antigravity",
+    "gemini",
+    "usage",
+    "tokens",
+    "rate limit"
+  ]
+}
