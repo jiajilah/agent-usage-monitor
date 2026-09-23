@@ -109,6 +109,8 @@ only the first scan is slow. While the tab is open it refreshes every 5 minutes.
   labels here come from cross-checking, not documentation.
 - **Antigravity publishes no weekly limit.** That does not prove no weekly cap exists — only that
   none is reported.
+- **Antigravity omits a zero quota.** When its allowance runs out, `remainingFraction` disappears
+  from the response rather than reading `0`; a missing value is treated as exhausted.
 
 ## License
 

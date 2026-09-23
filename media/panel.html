@@ -455,7 +455,10 @@
           ? '<span>Extra usage: <strong>' + v.extra.used.toFixed(2) + ' / ' + v.extra.limit.toFixed(2) + ' ' + esc(v.extra.currency) + '</strong> this month</span>'
           : '<span>Extra usage off</span>')
       + glanceCard('Antigravity', 'var(--series-gemini)', live.antigravity, null, (v) =>
-        '<span>Rolling quota · no weekly limit published</span>');
+        v.pools.some((p) => p.usedPercent >= 100)
+          ? '<span class="warn">Quota used up — Antigravity refuses these models until reset '
+            + 'unless AI credit overages are enabled.</span>'
+          : '<span>Rolling quota · no weekly limit published</span>');
   }
 
   function render() {

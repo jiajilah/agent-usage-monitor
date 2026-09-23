@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Fix Antigravity showing quota remaining when it was actually exhausted. The API omits
+  `remainingFraction` once it hits zero, which was read as "no quota info" and silently fell back
+  to another model pool. An absent field is now treated as zero, and the card says so.
+
 ## 0.1.0
 
 First release.

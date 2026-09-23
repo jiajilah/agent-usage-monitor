@@ -412,10 +412,13 @@ async function fetchAntigravityLimits(geminiHome, watchModel) {
   const pools = new Map();
   for (const [name, model] of Object.entries(models.models || {})) {
     const quota = model.quotaInfo;
-    if (!quota || !quota.resetTime || typeof quota.remainingFraction !== 'number') continue;
+    if (!quota || !quota.resetTime) continue;
+    // The API omits remainingFraction once it reaches zero (protobuf drops default values), so an
+    // absent field means the quota is exhausted, not that the model has no quota.
+    const remaining = typeof quota.remainingFraction === 'number' ? quota.remainingFraction : 0;
     const key = quota.resetTime;
     const pool = pools.get(key) || { resetsAt: Date.parse(quota.resetTime), remaining: 1, models: [] };
-    pool.remaining = Math.min(pool.remaining, quota.remainingFraction);
+    pool.remaining = Math.min(pool.remaining, remaining);
     pool.models.push(name);
     pools.set(key, pool);
   }
