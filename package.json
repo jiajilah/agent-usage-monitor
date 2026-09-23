@@ -3,7 +3,7 @@
   "displayName": "Agent Usage Monitor",
   "description": "Codex, Claude Code and Antigravity usage limits and token counts in one editor tab.",
   "version": "0.1.1",
-  "publisher": "jiajilah-vs",
+  "publisher": "jiajilah",
   "license": "MIT",
   "engines": {
     "vscode": "^1.96.0"
